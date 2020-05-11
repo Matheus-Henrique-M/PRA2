@@ -73,7 +73,7 @@ public class Ocurrences{
 	}
 
 	public String getForwarding () {
-		return aForwarding;
+		return mForwarding;
 	}
 
 	public void setForwarding (String mForwarding) {
