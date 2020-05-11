@@ -53,7 +53,7 @@ public class Ocurrences{
 	}
 
 	public void setId(int mId) {
-		amd = Id;
+		mId = Id;
 	}
 
 	public String getCreationDate() {
