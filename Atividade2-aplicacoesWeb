@@ -1,0 +1,135 @@
+<?php
+session_start();
+
+// Verificar se o array de contas já existe na sessão; se não, inicialize-o
+if (!isset($_SESSION['contas'])) {
+    $_SESSION['contas'] = array();
+}
+
+// Função para adicionar uma conta
+function adicionarConta($email, $senha) {
+    // Verificar se o email já existe
+    foreach ($_SESSION['contas'] as $conta) {
+        if ($conta['email'] === $email) {
+            return false;
+        }
+    }
+
+    $_SESSION['contas'][] = array('email' => $email, 'senha' => $senha);
+    return true;
+}
+
+// Função para atualizar uma conta
+function atualizarConta($index, $email, $senha) {
+    // Verificar se o email atualizado já existe em outra conta
+    foreach ($_SESSION['contas'] as $i => $conta) {
+        if ($i !== $index && $conta['email'] === $email) {
+            return false;
+        }
+    }
+
+    $_SESSION['contas'][$index]['email'] = $email;
+    $_SESSION['contas'][$index]['senha'] = $senha;
+    return true;
+}
+
+// Função para excluir uma conta
+function excluirConta($index) {
+    unset($_SESSION['contas'][$index]);
+    $_SESSION['contas'] = array_values($_SESSION['contas']); // Reindexar o array
+}
+
+// Verificar se o formulário foi enviado
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['adicionar'])) {
+        $email = $_POST['email'];
+        $senha = $_POST['senha'];
+        if (adicionarConta($email, $senha)) {
+            // Redirecionar ou exibir mensagem de sucesso
+            header('Location: index.php');
+            exit();
+        } else {
+            echo "O email já existe!";
+        }
+    }
+
+    if (isset($_POST['atualizar'])) {
+        if (isset($_POST['index'])) {
+            $index = $_POST['index'];
+            $email = $_POST['email'];
+            $senha = $_POST['senha'];
+            if (atualizarConta($index, $email, $senha)) {
+                // Redirecionar ou exibir mensagem de sucesso
+                header('Location: index.php');
+                exit();
+            } else {
+                echo "O email já existe em outra conta!";
+            }
+        }
+    }
+
+    if (isset($_POST['excluir'])) {
+        if (isset($_POST['index'])) {
+            $index = $_POST['index'];
+            excluirConta($index);
+        }
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD de Contas</title>
+</head>
+<body>
+    <h1>CRUD de Contas</h1>
+
+    <h2>Adicionar Conta</h2>
+    <form method="POST">
+        <label>Email:</label>
+        <input type="text" name="email" required>
+        <label>Senha:</label>
+        <input type="password" name="senha" required>
+        <button type="submit" name="adicionar">Adicionar Conta</button>
+    </form>
+
+    <h2>Contas Cadastradas</h2>
+<ul>
+    <?php
+    foreach ($_SESSION['contas'] as $index => $conta) {
+echo '<li>';
+echo 'Email: ' . $conta['email'] . ' | ';
+echo 'Senha: ' . $conta['senha'] . ' | ';
+echo '<form method="POST"><input type="hidden" name="index" value="' . $index . '">';
+echo '<button type="submit" name="excluir">Excluir</button>';
+echo '<button type="button" name="editar" onclick="mostrarEditar(' . $index . ')">Editar</button>';
+echo '</form>';
+echo '</li>';
+
+// Exibir campos de edição apenas quando o botão "Editar" é clicado
+echo '<li style="display:none;" id="edit-' . $index . '">';
+echo '<form method="POST">';
+echo '<input type="hidden" name="index" value="' . $index . '">';
+echo '<label>Email:</label><input type="text" name="email" value="' . $conta['email'] . '" required>';
+echo '<label>Senha:</label><input type="password" name="senha" value="' . $conta['senha'] . '" required>';
+echo '<button type="submit" name="atualizar">Atualizar</button>';
+echo '</form>';
+echo '</li>';
+
+    }
+    ?>
+</ul>
+
+<script>
+    function mostrarEditar(index) {
+        const editElement = document.getElementById('edit-' + index);
+        if (editElement.style.display === 'none') {
+            editElement.style.display = 'block';
+        } else {
+            editElement.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
